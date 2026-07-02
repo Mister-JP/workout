@@ -61,11 +61,14 @@ describe('workout playlists', () => {
     expect(playlists.map((playlist) => playlist.name)).toEqual([
       'Lower A — Glutes + Quads',
       'Upper + Abs',
+      'Upper A — Machines + Dumbbells',
+      'Upper B — Pull + Posture',
+      'Upper C — Push + Abs',
       'Lower B — Hamstrings + Glutes',
       'Machine Reset — Low-Energy, Still Show Up',
     ]);
     expect(playlists[0].blocks).toHaveLength(7);
-    expect(playlists[3].blocks).toHaveLength(6);
+    expect(playlists.find((playlist) => playlist.id === 'machine-reset')?.blocks).toHaveLength(6);
     for (const playlist of playlists) {
       expect(estimatedPlaylistMinutes(playlist)).toBeGreaterThan(25);
       for (const block of playlist.blocks) {

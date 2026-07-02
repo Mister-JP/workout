@@ -146,6 +146,11 @@ export const ActiveWorkoutView = ({
   const next = exercisesById.get(nextExerciseId);
   const isLastBlock = currentIndex === activeBlocks.length - 1;
   const blockComplete = completedSets >= effectiveBlock.sets;
+  const isTimedBlock = /\b(min|sec|seconds|minutes)\b/i.test(
+    effectiveBlock.repRange,
+  );
+  const effortLabel = isTimedBlock ? "Duration" : "Reps";
+  const logLabel = isTimedBlock ? "Log Block" : "Log Set";
 
   const toggleNote = (note: string) => {
     setSelectedNotes((current) =>
@@ -278,7 +283,7 @@ export const ActiveWorkoutView = ({
         </div>
         <div>
           <ListChecks size={24} />
-          <span>Reps</span>
+          <span>{effortLabel}</span>
           <strong>{effectiveBlock.repRange}</strong>
         </div>
         <div>
@@ -307,7 +312,7 @@ export const ActiveWorkoutView = ({
 
       <div className="active-inputs">
         <label>
-          Reps
+          {effortLabel}
           <input
             type="number"
             min={0}
@@ -315,11 +320,12 @@ export const ActiveWorkoutView = ({
             onChange={(event) => setReps(Number(event.target.value))}
           />
         </label>
-        <label>
+        <label className={isTimedBlock ? "is-muted" : undefined}>
           Weight
           <div>
             <button
               type="button"
+              disabled={isTimedBlock}
               onClick={() => setWeight((value) => Math.max(0, value - 5))}
             >
               -
@@ -327,17 +333,40 @@ export const ActiveWorkoutView = ({
             <input
               type="number"
               min={0}
+              disabled={isTimedBlock}
               value={weight}
               onChange={(event) => setWeight(Number(event.target.value))}
             />
             <button
               type="button"
+              disabled={isTimedBlock}
               onClick={() => setWeight((value) => value + 5)}
             >
               +
             </button>
           </div>
         </label>
+      </div>
+
+      <div className="active-workout__log">
+        {blockComplete ? (
+          <button
+            type="button"
+            className="workout-button workout-button--primary"
+            onClick={isLastBlock ? finishWorkout : goNext}
+          >
+            <Check size={22} />{" "}
+            {isLastBlock ? "Finish Workout" : "Next Exercise"}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="workout-button workout-button--primary"
+            onClick={logSet}
+          >
+            <Check size={22} /> {logLabel}
+          </button>
+        )}
       </div>
 
       <div className="session-notes">
@@ -413,27 +442,6 @@ export const ActiveWorkoutView = ({
         <button type="button" onClick={goNext} disabled={isLastBlock}>
           Next <ChevronRight size={18} />
         </button>
-      </div>
-
-      <div className="active-workout__log">
-        {blockComplete ? (
-          <button
-            type="button"
-            className="workout-button workout-button--primary"
-            onClick={isLastBlock ? finishWorkout : goNext}
-          >
-            <Check size={22} />{" "}
-            {isLastBlock ? "Finish Workout" : "Next Exercise"}
-          </button>
-        ) : (
-          <button
-            type="button"
-            className="workout-button workout-button--primary"
-            onClick={logSet}
-          >
-            <Check size={22} /> Log Set
-          </button>
-        )}
       </div>
     </section>
   );

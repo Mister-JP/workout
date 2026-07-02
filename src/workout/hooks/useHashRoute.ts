@@ -39,6 +39,10 @@ export const useHashRoute = () => {
     return () => window.removeEventListener('hashchange', update);
   }, []);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [route]);
+
   const setRoute = (next: WorkoutRoute) => {
     const hash = routeToHash(next);
     if (window.location.hash === hash) {

@@ -1,4 +1,4 @@
-import { ArrowLeft, Box, Clock3, MoreHorizontal, Play } from "lucide-react";
+import { ArrowLeft, Box, Clock3, Play } from "lucide-react";
 import { playlistsById } from "../data/playlists";
 import type { WorkoutPreferences } from "../types";
 import { ExerciseBlockCard } from "./ExerciseBlockCard";
@@ -39,9 +39,7 @@ export const PlaylistDetailView = ({
           <ArrowLeft size={26} />
         </button>
         <strong>{playlist.name}</strong>
-        <button type="button" aria-label="More playlist actions">
-          <MoreHorizontal size={26} />
-        </button>
+        <span aria-hidden="true" />
       </header>
 
       <div className="playlist-detail__intro">
@@ -55,9 +53,6 @@ export const PlaylistDetailView = ({
             <Clock3 size={18} /> {playlist.estimatedDuration}
           </span>
         </div>
-        <button type="button" className="workout-button workout-button--ghost">
-          Edit
-        </button>
       </div>
 
       <div className="exercise-timeline">

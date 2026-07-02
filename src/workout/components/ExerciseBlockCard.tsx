@@ -1,6 +1,8 @@
 import {
   Check,
   Dumbbell,
+  ExternalLink,
+  Eye,
   Heart,
   Pencil,
   SkipForward,
@@ -9,6 +11,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { exercisesById, roleLabels } from "../data/exercises";
+import { mediaByExerciseId } from "../data/media";
 import { getBestSubstitution } from "../lib/substitutions";
 import type { SubstitutionTag, WorkoutBlock } from "../types";
 import { MediaFrame } from "./MediaFrame";
@@ -39,6 +42,12 @@ const chips: Array<{ tag: SubstitutionTag; label: string }> = [
   { tag: "want_dumbbells", label: "Want dumbbells" },
 ];
 
+const hasEmbeddedVideo = (sourcePlatform = "", sourceUrl = "") => {
+  if (sourcePlatform === "DVIDS") return /dvidshub\.net\/video\/\d+/.test(sourceUrl);
+  if (sourcePlatform === "YouTube") return /(?:youtube\.com\/watch\?[^#]*v=|youtu\.be\/)[^&?#]+/.test(sourceUrl);
+  return false;
+};
+
 export const ExerciseBlockCard = ({
   block,
   index,
@@ -60,6 +69,13 @@ export const ExerciseBlockCard = ({
   const [restSeconds, setRestSeconds] = useState(block.restSeconds);
 
   if (!selected) return null;
+
+  const selectedMedia =
+    mediaByExerciseId.get(selected.primaryMediaId) ?? mediaByExerciseId.get(selected.id);
+  const hasSelectedVideo = Boolean(
+    selectedMedia?.localFile ||
+      hasEmbeddedVideo(selectedMedia?.sourcePlatform, selectedMedia?.sourceUrl),
+  );
 
   const applyTag = (tag: SubstitutionTag) => {
     onSelectExercise(getBestSubstitution(block, tag, selected.id));
@@ -101,11 +117,29 @@ export const ExerciseBlockCard = ({
 
         <button
           type="button"
-          className="exercise-block__media"
+          className={
+            hasSelectedVideo
+              ? "exercise-block__media exercise-block__media--video"
+              : "exercise-block__media exercise-block__media--guide"
+          }
           onClick={() => onOpenExercise(selected.id)}
         >
-          <MediaFrame exercise={selected} compact interactive={false} />
-          <span>Open</span>
+          {hasSelectedVideo ? (
+            <MediaFrame exercise={selected} compact interactive={false} />
+          ) : (
+            <span className="exercise-block__guide-mark" aria-hidden="true">
+              <ExternalLink size={18} />
+            </span>
+          )}
+          <span className="exercise-block__media-label">
+            <Eye size={16} />
+            {hasSelectedVideo ? "Watch form" : "Open form guide"}
+          </span>
+          {!hasSelectedVideo && (
+            <span className="exercise-block__guide-copy">
+              Reviewed form guide available.
+            </span>
+          )}
         </button>
 
         <div
@@ -127,6 +161,12 @@ export const ExerciseBlockCard = ({
           {block.exerciseIds.map((exerciseId) => {
             const exercise = exercisesById.get(exerciseId);
             if (!exercise) return null;
+            const asset =
+              mediaByExerciseId.get(exercise.primaryMediaId) ??
+              mediaByExerciseId.get(exercise.id);
+            const hasVideo = Boolean(
+              asset?.localFile || hasEmbeddedVideo(asset?.sourcePlatform, asset?.sourceUrl),
+            );
             return (
               <button
                 key={exercise.id}
@@ -134,8 +174,11 @@ export const ExerciseBlockCard = ({
                 className={exercise.id === selected.id ? "is-selected" : ""}
                 onClick={() => onSelectExercise(exercise.id)}
               >
-                <MediaFrame exercise={exercise} compact interactive={false} />
+                <span className={hasVideo ? "exercise-block__rail-badge" : "exercise-block__rail-badge is-guide"}>
+                  {hasVideo ? "Video" : "Guide"}
+                </span>
                 <span>{exercise.name}</span>
+                <small>{exercise.equipment}</small>
               </button>
             );
           })}
@@ -157,7 +200,7 @@ export const ExerciseBlockCard = ({
           <div>
             <strong>Cues</strong>
             <ul>
-              {selected.cues.slice(0, 3).map((cue) => (
+              {selected.cues.slice(0, 2).map((cue) => (
                 <li key={cue}>
                   <Check size={14} /> {cue}
                 </li>
@@ -167,7 +210,7 @@ export const ExerciseBlockCard = ({
           <div>
             <strong>Avoid</strong>
             <ul>
-              {selected.avoid.slice(0, 2).map((note) => (
+              {selected.avoid.slice(0, 1).map((note) => (
                 <li key={note}>{note}</li>
               ))}
             </ul>
